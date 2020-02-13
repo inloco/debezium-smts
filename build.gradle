@@ -1,0 +1,24 @@
+plugins {
+    id 'java-library'
+    id 'com.github.sherter.google-java-format' version '0.8'
+}
+
+repositories {
+    // Use jcenter for resolving dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+}
+
+dependencies {
+    implementation group: 'org.apache.kafka', name: 'connect-transforms', version: '0.10.2.1'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
+    testImplementation 'org.assertj:assertj-core:3.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
+}
+
+test {
+    // Use junit platform for unit tests
+    useJUnitPlatform()
+}
