@@ -22,7 +22,7 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
   public static final String LATITUDE_CONFIG = "latitude";
   public static final String LONGITUDE_CONFIG = "longitude";
   public static final String OUTPUT_CONFIG = "output";
-  private static final String afterField = "after";
+  public static final String AFTER_FIELD_NAME = "after";
 
   private static ConfigDef CONFIG_DEF =
       new ConfigDef()
@@ -58,7 +58,7 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
     if (record.value() == null) return record;
 
     Struct recordValue = requireStruct(record.value(), PURPOSE);
-    Struct afterValue = recordValue.getStruct(afterField);
+    Struct afterValue = recordValue.getStruct(AFTER_FIELD_NAME);
 
     if (afterValue == null) return record;
 
@@ -72,11 +72,11 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
     final Struct updatedRecordValue = new Struct(updatedDebeziumRecordSchema);
 
     for (Field field : record.valueSchema().fields()) {
-      if (!field.name().equals(afterField))
+      if (!field.name().equals(AFTER_FIELD_NAME))
         updatedRecordValue.put(field.name(), ((Struct) record.value()).get(field));
     }
 
-    updatedRecordValue.put(afterField, updatedAfterValue);
+    updatedRecordValue.put(AFTER_FIELD_NAME, updatedAfterValue);
 
     return record.newRecord(
         record.topic(),
@@ -140,9 +140,9 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
   private Schema updateDebeziumRecordSchema(Schema schema, Schema afterSchemaReplacement) {
     final SchemaBuilder builder = SchemaUtil.copySchemaBasics(schema, SchemaBuilder.struct());
     for (Field field : schema.fields()) {
-      if (!field.name().equals(afterField)) builder.field(field.name(), field.schema());
+      if (!field.name().equals(AFTER_FIELD_NAME)) builder.field(field.name(), field.schema());
     }
-    builder.field(afterField, afterSchemaReplacement);
+    builder.field(AFTER_FIELD_NAME, afterSchemaReplacement);
     return builder.build();
   }
 
