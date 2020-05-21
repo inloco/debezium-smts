@@ -146,7 +146,7 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
     return builder.build();
   }
 
-  class ProcessedAfterField {
+  private class ProcessedAfterField {
     Schema schema;
     Struct struct;
 
