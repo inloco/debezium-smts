@@ -74,6 +74,23 @@ public class PostgresDebeziumGeopointMappingTest {
     assertThat(outputtedRecord).isEqualTo(originalRecord);
   }
 
+  @Test
+  public void testGeopointMapping_givenTombstoneRecord() {
+    Schema schema = createValueSchema();
+    ConnectRecord originalRecord =
+        new SinkRecord("", 1, Schema.STRING_SCHEMA, "testKey", null, null, 0);
+
+    Map<String, Object> configurations = new HashMap<>();
+    configurations.put(PostgresDebeziumGeopointMapping.LATITUDE_CONFIG, "latitude");
+    configurations.put(PostgresDebeziumGeopointMapping.LONGITUDE_CONFIG, "longitude");
+    configurations.put(PostgresDebeziumGeopointMapping.OUTPUT_CONFIG, "location");
+    PostgresDebeziumGeopointMapping transform = new PostgresDebeziumGeopointMapping();
+    transform.configure(configurations);
+
+    ConnectRecord outputtedRecord = transform.apply(originalRecord);
+    assertThat(outputtedRecord).isEqualTo(originalRecord);
+  }
+
   private Schema createValueSchema() {
     return SchemaBuilder.struct()
         .name("record")
