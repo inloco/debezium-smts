@@ -12,7 +12,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.jupiter.api.Test;
 
-public class GeopointMappingTest {
+public class PostgresDebeziumGeopointMappingTest {
   @Test
   public void testGeopointMapping_usingStandardProcedure() {
     Schema schema = createValueSchema();
@@ -27,10 +27,10 @@ public class GeopointMappingTest {
             0);
 
     Map<String, Object> configurations = new HashMap<>();
-    configurations.put(GeopointMapping.LATITUDE_CONFIG, "latitude");
-    configurations.put(GeopointMapping.LONGITUDE_CONFIG, "longitude");
-    configurations.put(GeopointMapping.OUTPUT_CONFIG, "location");
-    GeopointMapping transform = new GeopointMapping();
+    configurations.put(PostgresDebeziumGeopointMapping.LATITUDE_CONFIG, "latitude");
+    configurations.put(PostgresDebeziumGeopointMapping.LONGITUDE_CONFIG, "longitude");
+    configurations.put(PostgresDebeziumGeopointMapping.OUTPUT_CONFIG, "location");
+    PostgresDebeziumGeopointMapping transform = new PostgresDebeziumGeopointMapping();
     transform.configure(configurations);
 
     ConnectRecord outputtedRecord = transform.apply(originalRecord);
@@ -40,7 +40,11 @@ public class GeopointMappingTest {
                 .collect(Collectors.toList()))
         .contains("location");
   }
-
+  /*
+      A delete message on debezium consists of the operation being set to 'd'
+      and the after message being null, in this case we want the transform to ignore the record
+      by just returning the record as is.
+  */
   @Test
   public void testGeopointMapping_givenDeleteOperation() {
     Schema schema = createValueSchema();
@@ -55,10 +59,10 @@ public class GeopointMappingTest {
             0);
 
     Map<String, Object> configurations = new HashMap<>();
-    configurations.put(GeopointMapping.LATITUDE_CONFIG, "latitude");
-    configurations.put(GeopointMapping.LONGITUDE_CONFIG, "longitude");
-    configurations.put(GeopointMapping.OUTPUT_CONFIG, "location");
-    GeopointMapping transform = new GeopointMapping();
+    configurations.put(PostgresDebeziumGeopointMapping.LATITUDE_CONFIG, "latitude");
+    configurations.put(PostgresDebeziumGeopointMapping.LONGITUDE_CONFIG, "longitude");
+    configurations.put(PostgresDebeziumGeopointMapping.OUTPUT_CONFIG, "location");
+    PostgresDebeziumGeopointMapping transform = new PostgresDebeziumGeopointMapping();
     transform.configure(configurations);
 
     ConnectRecord outputtedRecord = transform.apply(originalRecord);

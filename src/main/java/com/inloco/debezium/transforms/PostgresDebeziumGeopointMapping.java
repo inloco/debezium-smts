@@ -1,5 +1,7 @@
 package com.inloco.debezium.transforms;
 
+import static org.apache.kafka.connect.transforms.util.Requirements.requireStruct;
+
 import java.util.Map;
 import org.apache.kafka.common.cache.Cache;
 import org.apache.kafka.common.cache.LRUCache;
@@ -16,7 +18,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.transforms.Transformation;
 import org.apache.kafka.connect.transforms.util.SchemaUtil;
 
-public class GeopointMapping implements Transformation {
+public class PostgresDebeziumGeopointMapping implements Transformation {
   public static final String LATITUDE_CONFIG = "latitude";
   public static final String LONGITUDE_CONFIG = "longitude";
   public static final String OUTPUT_CONFIG = "output";
@@ -55,19 +57,25 @@ public class GeopointMapping implements Transformation {
   public ConnectRecord apply(ConnectRecord record) {
     if (record.value() == null) return record;
 
-    Struct afterValue = ((Struct) record.value()).getStruct(afterField);
+    Struct recordValue = requireStruct(record.value(), PURPOSE);
+    Struct afterValue = recordValue.getStruct(afterField);
+
     if (afterValue == null) return record;
 
     ProcessedAfterField processedAfterField = processAfterField(afterValue);
     Schema updatedAfterSchema = processedAfterField.getSchema();
     Struct updatedAfterValue = processedAfterField.getStruct();
 
-    Schema finalRecordSchema = updateFinalSchema(record.valueSchema(), updatedAfterSchema);
-    final Struct updatedRecordValue = new Struct(finalRecordSchema);
+    Schema updatedDebeziumRecordSchema =
+        updateDebeziumRecordSchema(record.valueSchema(), updatedAfterSchema);
+
+    final Struct updatedRecordValue = new Struct(updatedDebeziumRecordSchema);
+
     for (Field field : record.valueSchema().fields()) {
       if (!field.name().equals(afterField))
         updatedRecordValue.put(field.name(), ((Struct) record.value()).get(field));
     }
+
     updatedRecordValue.put(afterField, updatedAfterValue);
 
     return record.newRecord(
@@ -75,7 +83,7 @@ public class GeopointMapping implements Transformation {
         record.kafkaPartition(),
         record.keySchema(),
         record.key(),
-        finalRecordSchema,
+        updatedDebeziumRecordSchema,
         updatedRecordValue,
         record.timestamp());
   }
@@ -94,7 +102,7 @@ public class GeopointMapping implements Transformation {
     latitudeField = config.getString(LATITUDE_CONFIG);
     longitudeField = config.getString(LONGITUDE_CONFIG);
     outputField = config.getString(OUTPUT_CONFIG);
-    schemaUpdateCache = new SynchronizedCache<>(new LRUCache<Schema, Schema>(16));
+    schemaUpdateCache = new SynchronizedCache<>(new LRUCache<>(16));
   }
 
   private ProcessedAfterField processAfterField(Struct afterValue) {
@@ -129,7 +137,7 @@ public class GeopointMapping implements Transformation {
     return builder.build();
   }
 
-  private Schema updateFinalSchema(Schema schema, Schema afterSchemaReplacement) {
+  private Schema updateDebeziumRecordSchema(Schema schema, Schema afterSchemaReplacement) {
     final SchemaBuilder builder = SchemaUtil.copySchemaBasics(schema, SchemaBuilder.struct());
     for (Field field : schema.fields()) {
       if (!field.name().equals(afterField)) builder.field(field.name(), field.schema());
