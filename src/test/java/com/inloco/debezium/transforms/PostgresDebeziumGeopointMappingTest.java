@@ -35,7 +35,12 @@ public class PostgresDebeziumGeopointMappingTest {
 
     ConnectRecord outputtedRecord = transform.apply(originalRecord);
     assertThat(
-            outputtedRecord.valueSchema().field("after").schema().fields().stream()
+            outputtedRecord
+                .valueSchema()
+                .field("after")
+                .schema()
+                .fields()
+                .stream()
                 .map(field -> field.name())
                 .collect(Collectors.toList()))
         .contains("location");
