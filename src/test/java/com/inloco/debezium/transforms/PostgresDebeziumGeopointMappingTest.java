@@ -45,6 +45,7 @@ public class PostgresDebeziumGeopointMappingTest {
                 .collect(Collectors.toList()))
         .contains("location");
   }
+
   /*
       A delete message on debezium consists of the operation being set to 'd'
       and the after message being null, in this case we want the transform to ignore the record

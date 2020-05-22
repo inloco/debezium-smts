@@ -110,18 +110,7 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
       updatedAfterSchema = updateAfterSchema(afterValue.schema());
       schemaUpdateCache.put(afterValue.schema(), updatedAfterSchema);
     }
-
-    final Struct updatedAfterValue = new Struct(updatedAfterSchema);
-
-    for (Field field : afterValue.schema().fields()) {
-      updatedAfterValue.put(field.name(), afterValue.get(field));
-    }
-
-    Double lat = afterValue.getFloat64(latitudeField);
-    Double lng = afterValue.getFloat64(longitudeField);
-    String output = lat.toString() + "," + lng.toString();
-
-    updatedAfterValue.put(outputField, output);
+    final Struct updatedAfterValue = updateAfterValue(updatedAfterSchema, afterValue);
     return new ProcessedAfterField(updatedAfterSchema, updatedAfterValue);
   }
 
@@ -134,6 +123,21 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
 
     builder.field(outputField, Schema.STRING_SCHEMA);
     return builder.build();
+  }
+
+  private Struct updateAfterValue(Schema updatedAfterSchema, Struct afterValue) {
+    final Struct updatedAfterValue = new Struct(updatedAfterSchema);
+
+    for (Field field : afterValue.schema().fields()) {
+      updatedAfterValue.put(field.name(), afterValue.get(field));
+    }
+
+    Double lat = afterValue.getFloat64(latitudeField);
+    Double lng = afterValue.getFloat64(longitudeField);
+    String output = lat.toString() + "," + lng.toString();
+
+    updatedAfterValue.put(outputField, output);
+    return updatedAfterValue;
   }
 
   private SchemaBuilder copyBasicsSchemaWithoutName(Schema source, SchemaBuilder builder) {
