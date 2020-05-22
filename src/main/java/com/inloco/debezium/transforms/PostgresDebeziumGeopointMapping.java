@@ -128,7 +128,7 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
 
   private Schema updateAfterSchema(Schema schema) {
     SchemaBuilder builder = copyBasicsSchemaWithoutName(schema, SchemaBuilder.struct());
-    builder.name("places_pre_prod.public.places.ValueWithLocation");
+    builder.name(schema.name() + "WithLocation");
     for (Field field : schema.fields()) {
       builder.field(field.name(), field.schema());
     }
