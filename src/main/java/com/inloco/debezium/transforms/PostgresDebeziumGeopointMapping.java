@@ -3,6 +3,7 @@ package com.inloco.debezium.transforms;
 import static org.apache.kafka.connect.transforms.util.Requirements.requireStruct;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.kafka.common.cache.Cache;
 import org.apache.kafka.common.cache.LRUCache;
 import org.apache.kafka.common.cache.SynchronizedCache;
@@ -59,7 +60,6 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
 
     Struct recordValue = requireStruct(record.value(), PURPOSE);
     Struct afterValue = recordValue.getStruct(AFTER_FIELD_NAME);
-
     if (afterValue == null) return record;
 
     ProcessedAfterField processedAfterField = processAfterField(afterValue);
@@ -90,7 +90,7 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
 
   @Override
   public ConfigDef config() {
-    return null;
+    return CONFIG_DEF;
   }
 
   @Override
@@ -123,18 +123,29 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
     String output = lat.toString() + "," + lng.toString();
 
     updatedAfterValue.put(outputField, output);
-
     return new ProcessedAfterField(updatedAfterSchema, updatedAfterValue);
   }
 
   private Schema updateAfterSchema(Schema schema) {
-    final SchemaBuilder builder = SchemaUtil.copySchemaBasics(schema, SchemaBuilder.struct());
+    SchemaBuilder builder = copyBasicsSchemaWithoutName(schema, SchemaBuilder.struct());
+    builder.name("places_pre_prod.public.places.ValueWithLocation");
     for (Field field : schema.fields()) {
       builder.field(field.name(), field.schema());
     }
 
     builder.field(outputField, Schema.STRING_SCHEMA);
     return builder.build();
+  }
+
+  private SchemaBuilder copyBasicsSchemaWithoutName(Schema source, SchemaBuilder builder) {
+    builder.version(source.version());
+    builder.doc(source.doc());
+
+    final Map<String, String> params = source.parameters();
+    if (params != null) {
+      builder.parameters(params);
+    }
+    return builder;
   }
 
   private Schema updateDebeziumRecordSchema(Schema schema, Schema afterSchemaReplacement) {
