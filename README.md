@@ -27,5 +27,5 @@ specified value field will produce null-valued messages.
 
 This transform receives a standard debezium record and transforms two float/Double fields to
 a format that is accepted in ElasticSearch as geo_point(format="lat,lng").
-The user has to pass the name of it latitude and longitude fields and also the name of the field
-he wants to output to.
+The user has to pass the name of the streamed database latitude and longitude fields and
+also the name of the field he wants to output to.
