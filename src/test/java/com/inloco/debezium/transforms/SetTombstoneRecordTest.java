@@ -55,4 +55,3 @@ class SetTombstoneRecordTest {
     assertThat(transformedRecord.value()).isNotNull();
   }
 }
-
