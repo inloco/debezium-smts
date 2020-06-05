@@ -15,6 +15,7 @@ import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.transforms.Transformation;
 import org.apache.kafka.connect.transforms.util.SchemaUtil;
 
@@ -31,13 +32,13 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
               Type.STRING,
               ConfigDef.NO_DEFAULT_VALUE,
               Importance.HIGH,
-              "the name of the latitude field on the input schema")
+              "the name of the latitude field on the input schema, if the field is not found the transform will not be applied")
           .define(
               LONGITUDE_CONFIG,
               Type.STRING,
               ConfigDef.NO_DEFAULT_VALUE,
               Importance.HIGH,
-              "the name of the longitude field on the input schema")
+              "the name of the longitude field on the input schema, if the field is not found the transform will not be applied")
           .define(
               OUTPUT_CONFIG,
               Type.STRING,
@@ -60,6 +61,13 @@ public class PostgresDebeziumGeopointMapping implements Transformation {
     Struct recordValue = requireStruct(record.value(), PURPOSE);
     Struct afterValue = recordValue.getStruct(AFTER_FIELD_NAME);
     if (afterValue == null) return record;
+
+    try {
+      afterValue.getFloat64(latitudeField);
+      afterValue.getFloat64(longitudeField);
+    } catch (DataException e) {
+      return record;
+    }
 
     ProcessedAfterField processedAfterField = processAfterField(afterValue);
     Schema updatedAfterSchema = processedAfterField.getSchema();
