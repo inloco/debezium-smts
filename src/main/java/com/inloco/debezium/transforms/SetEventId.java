@@ -19,9 +19,8 @@ import org.apache.kafka.connect.transforms.util.SchemaUtil;
 
 public class SetEventId implements Transformation {
   private static final String PURPOSE = "Access values to insert new event id field";
-  protected static final String DEFAULT_EVENT_ID_FIELD = "event_id";
   protected static final String EVENT_FIELD_CONFIG = "field";
-  private static final ConfigDef CONFIG_DEF =
+  protected static final ConfigDef CONFIG_DEF =
       new ConfigDef()
           .define(
               EVENT_FIELD_CONFIG,
