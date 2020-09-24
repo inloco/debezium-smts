@@ -29,3 +29,10 @@ This transform receives a standard debezium record and transforms two Float/Doub
 a format that is accepted in ElasticSearch as geo_point(format="lat,lng").
 The user has to pass the name of the streamed database's latitude and longitude fields and
 also the name of the field he wants to output to.
+
+## SetEventId
+
+This transform adds a unique, UUID-generated field to represent a given event.
+Its goal is supporting the automatic generation of unique ids for cases where they are not available in Debezium's source
+and an outbox pattern is not being actively utilized. The name of the field may be passed as a configuration
+in the Debezium source properties as `field`.
