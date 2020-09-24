@@ -27,7 +27,7 @@ public class SetEventId implements Transformation {
               ConfigDef.Type.STRING,
               ConfigDef.NO_DEFAULT_VALUE,
               ConfigDef.Importance.HIGH,
-              "The name of the new field which for the event id.");
+              "The name of the new field for the event id.");
 
   private String eventIdField;
   private Cache<Schema, Schema> schemaUpdateCache;
