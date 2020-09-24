@@ -35,4 +35,4 @@ also the name of the field he wants to output to.
 This transform adds a unique, UUID-generated field to represent a given event.
 Its goal is supporting the automatic generation of unique ids for cases where they are not available in Debezium's source
 and an outbox pattern is not being actively utilized. The name of the field may be passed as a configuration
-in the Debezium source properties as `field`.
+in the Debezium source properties as `field`. If the given name already exists, the SMT ignores the given record.
