@@ -16,7 +16,7 @@ class SetEventIdTest {
   @Test
   void testSetEventId_withAllConfigs() {
     Schema schema = createValueSchema();
-    Struct value = populateInnerFields(schema);
+    Struct value = populateInnerFields(schema, "id");
     SinkRecord record = new SinkRecord("", 0, null, null, schema, value, 0);
 
     String eventIdField = "event_id_test";
@@ -46,6 +46,30 @@ class SetEventIdTest {
     assertThat(transformedRecord).isEqualTo(record);
   }
 
+  @Test
+  void testSetEventId_givenTwoEvents_idsShouldBeUnique() {
+    String eventIdField = "event_id_test";
+    Schema schema = createValueSchema();
+    Struct firstValue = populateInnerFields(schema, "id1");
+    SinkRecord firstRecord = new SinkRecord("", 0, null, null, schema, firstValue, 0);
+
+    Struct secondValue = populateInnerFields(schema, "id2");
+    SinkRecord secondRecord = new SinkRecord("", 0, null, null, schema, secondValue, 0);
+
+    Map<String, Object> configurations = new HashMap<>();
+    configurations.put(SetEventId.EVENT_FIELD_CONFIG, eventIdField);
+    SetEventId transform = new SetEventId();
+    transform.configure(configurations);
+
+    ConnectRecord firstTransformedRecord = transform.apply(firstRecord);
+    ConnectRecord secondTransformedRecord = transform.apply(secondRecord);
+
+    assertThat(requireStruct(firstTransformedRecord.value(), "testing").getString(eventIdField))
+        .isNotNull()
+        .isNotEqualTo(
+            requireStruct(secondTransformedRecord.value(), "testing").getString(eventIdField));
+  }
+
   private Schema createValueSchema() {
     return SchemaBuilder.struct()
         .name("record")
@@ -71,9 +95,9 @@ class SetEventIdTest {
         .build();
   }
 
-  private static Struct populateInnerFields(Schema schema) {
+  private static Struct populateInnerFields(Schema schema, String id) {
     Struct struct = new Struct(schema.field("after").schema());
-    struct.put("id", "id1");
+    struct.put("id", id);
     struct.put("placeholderA", true);
     struct.put("placeholderB", false);
     Struct field = new Struct(schema);
