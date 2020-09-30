@@ -29,23 +29,26 @@ public class SetBeforeAndAfterName implements Transformation {
               ConfigDef.Type.STRING,
               ConfigDef.NO_DEFAULT_VALUE,
               ConfigDef.Importance.HIGH,
-              "The new name for the internal records in the before and after schemas.");
+              "The new name for the internal records in the before and after schemata.");
 
   private String newName;
   private Cache<Schema, Schema> schemaUpdateCache;
 
   @Override
   public ConnectRecord apply(ConnectRecord record) {
+    Schema beforeSchema = record.valueSchema().field(BEFORE_FIELD_NAME).schema();
+    Schema afterSchema = record.valueSchema().field(AFTER_FIELD_NAME).schema();
+    if (beforeSchema == null || afterSchema == null) return record;
+
+    Schema updatedBeforeSchema = updateSchema(beforeSchema);
+    Schema updatedAfterSchema = updateSchema(afterSchema);
+
     final Struct recordValue = requireStruct(record.value(), PURPOSE);
     Struct beforeValue = recordValue.getStruct(BEFORE_FIELD_NAME);
     Struct afterValue = recordValue.getStruct(AFTER_FIELD_NAME);
-    if (beforeValue == null && afterValue == null) return record;
-
-    Schema updatedBeforeSchema = updateSchema(beforeValue);
     Struct updatedBeforeValue = copyValues(beforeValue, updatedBeforeSchema);
-
-    Schema updatedAfterSchema = updateSchema(afterValue);
     Struct updatedAfterValue = copyValues(afterValue, updatedAfterSchema);
+
     Schema updatedRecordSchema =
         replaceBeforeAndAfterSchemata(
             record.valueSchema(), updatedBeforeSchema, updatedAfterSchema);
@@ -62,12 +65,11 @@ public class SetBeforeAndAfterName implements Transformation {
         record.timestamp());
   }
 
-  private Schema updateSchema(Struct recordValue) {
-    if (recordValue == null) return null;
-    Schema updatedSchema = schemaUpdateCache.get(recordValue.schema());
+  private Schema updateSchema(Schema recordSchema) {
+    Schema updatedSchema = schemaUpdateCache.get(recordSchema);
     if (updatedSchema == null) {
-      updatedSchema = makeUpdatedSchema(recordValue.schema());
-      schemaUpdateCache.put(recordValue.schema(), updatedSchema);
+      updatedSchema = makeUpdatedSchema(recordSchema);
+      schemaUpdateCache.put(recordSchema, updatedSchema);
     }
     return updatedSchema;
   }
@@ -75,6 +77,7 @@ public class SetBeforeAndAfterName implements Transformation {
   private Schema makeUpdatedSchema(Schema schema) {
     final SchemaBuilder builder = copyBasicsSchemaWithoutName(schema, SchemaBuilder.struct());
     builder.name(newName);
+    builder.optional();
     for (Field field : schema.fields()) {
       builder.field(field.name(), field.schema());
     }
@@ -94,16 +97,12 @@ public class SetBeforeAndAfterName implements Transformation {
       Schema schema, Schema beforeSchemaReplacement, Schema afterSchemaReplacement) {
     final SchemaBuilder builder = SchemaUtil.copySchemaBasics(schema, SchemaBuilder.struct());
     for (Field field : schema.fields()) {
-      if (!field.name().equals(AFTER_FIELD_NAME) && !field.name().equals(BEFORE_FIELD_NAME)) {
+      if (!field.name().equals(BEFORE_FIELD_NAME) && !field.name().equals(AFTER_FIELD_NAME)) {
         builder.field(field.name(), field.schema());
       }
     }
-    if (beforeSchemaReplacement != null) {
-      builder.field(BEFORE_FIELD_NAME, beforeSchemaReplacement);
-    }
-    if (afterSchemaReplacement != null) {
-      builder.field(AFTER_FIELD_NAME, afterSchemaReplacement);
-    }
+    builder.field(BEFORE_FIELD_NAME, beforeSchemaReplacement);
+    builder.field(AFTER_FIELD_NAME, afterSchemaReplacement);
     return builder.build();
   }
 
@@ -115,16 +114,13 @@ public class SetBeforeAndAfterName implements Transformation {
     final Struct updatedRecordValue = new Struct(updatedSchema);
 
     for (Field field : record.valueSchema().fields()) {
-      if (!field.name().equals(AFTER_FIELD_NAME) && !field.name().equals(BEFORE_FIELD_NAME)) {
-        updatedRecordValue.put(field.name(), ((Struct) record.value()).get(field));
+      Object originalValue = ((Struct) record.value()).get(field);
+      if (!field.name().equals(BEFORE_FIELD_NAME) && !field.name().equals(AFTER_FIELD_NAME)) {
+        updatedRecordValue.put(field.name(), originalValue);
       }
     }
-    if (beforeValueReplacement != null) {
-      updatedRecordValue.put(BEFORE_FIELD_NAME, beforeValueReplacement);
-    }
-    if (afterValueReplacement != null) {
-      updatedRecordValue.put(AFTER_FIELD_NAME, afterValueReplacement);
-    }
+    updatedRecordValue.put(BEFORE_FIELD_NAME, beforeValueReplacement);
+    updatedRecordValue.put(AFTER_FIELD_NAME, afterValueReplacement);
     return updatedRecordValue;
   }
 
