@@ -54,6 +54,7 @@ class SetBeforeAndAfterNameTest {
     Struct transformedRecordValue = requireStruct(transformedRecord.value(), "testing");
     assertThat(transformedRecordValue.getStruct("after").schema().name()).isEqualTo(newName);
     assertThat(transformedRecord.valueSchema().field("before")).isNotNull();
+    assertThat(transformedRecord.valueSchema().field("before").schema().name()).isEqualTo(newName);
     assertThat(transformedRecordValue.schema().name()).isEqualTo(ROOT_LEVEL_NAME);
   }
 
@@ -73,6 +74,7 @@ class SetBeforeAndAfterNameTest {
     Struct transformedRecordValue = requireStruct(transformedRecord.value(), "testing");
     assertThat(transformedRecordValue.getStruct("before").schema().name()).isEqualTo(newName);
     assertThat(transformedRecord.valueSchema().field("after")).isNotNull();
+    assertThat(transformedRecord.valueSchema().field("after").schema().name()).isEqualTo(newName);
     assertThat(transformedRecordValue.schema().name()).isEqualTo(ROOT_LEVEL_NAME);
   }
 
@@ -89,7 +91,12 @@ class SetBeforeAndAfterNameTest {
     transform.configure(configurations);
 
     ConnectRecord transformedRecord = transform.apply(record);
-    assertThat(transformedRecord).isEqualTo(record);
+    Struct transformedRecordValue = requireStruct(transformedRecord.value(), "testing");
+    assertThat(transformedRecord.valueSchema().field("before")).isNotNull();
+    assertThat(transformedRecord.valueSchema().field("before").schema().name()).isEqualTo(newName);
+    assertThat(transformedRecord.valueSchema().field("after")).isNotNull();
+    assertThat(transformedRecord.valueSchema().field("after").schema().name()).isEqualTo(newName);
+    assertThat(transformedRecordValue.schema().name()).isEqualTo(ROOT_LEVEL_NAME);
   }
 
   private Schema createValueSchema() {
