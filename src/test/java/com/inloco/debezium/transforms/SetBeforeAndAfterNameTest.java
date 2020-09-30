@@ -53,6 +53,7 @@ class SetBeforeAndAfterNameTest {
     ConnectRecord transformedRecord = transform.apply(record);
     Struct transformedRecordValue = requireStruct(transformedRecord.value(), "testing");
     assertThat(transformedRecordValue.getStruct("after").schema().name()).isEqualTo(newName);
+    assertThat(transformedRecord.valueSchema().field("before")).isNotNull();
     assertThat(transformedRecordValue.schema().name()).isEqualTo(ROOT_LEVEL_NAME);
   }
 
@@ -71,6 +72,7 @@ class SetBeforeAndAfterNameTest {
     ConnectRecord transformedRecord = transform.apply(record);
     Struct transformedRecordValue = requireStruct(transformedRecord.value(), "testing");
     assertThat(transformedRecordValue.getStruct("before").schema().name()).isEqualTo(newName);
+    assertThat(transformedRecord.valueSchema().field("after")).isNotNull();
     assertThat(transformedRecordValue.schema().name()).isEqualTo(ROOT_LEVEL_NAME);
   }
 
