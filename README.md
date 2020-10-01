@@ -36,3 +36,16 @@ This transform adds a unique, UUID-generated field to represent a given event.
 Its goal is supporting the automatic generation of unique ids for cases where they are not available in Debezium's source
 and an outbox pattern is not being actively utilized. The name of the field may be passed as a configuration
 in the Debezium source properties as `field`. If the given name already exists, the SMT ignores the given record.
+
+## SetBeforeAndAfterName
+
+This transform modifies the `namespace` and `name` fields for the `before` and `after` Debezium schemata.
+
+Its usefulness lies in the fact that the default `SetSchemaMetadata` transform provided by Kafka Connect
+does not account for inner values, and Debezium itself does not seem to offer an alternative to that.
+This make it so the `before` and `after` namespaces are always set to the database configuration values
+(e.g. database name, namespace, and table) with the `Value` name.
+
+The transform's only configuration value is the new `name` for the schemata, which may be composed of a
+dot-separated string that will in turn be converted as a package-like structure to generate the namespace and name for the records,
+i.e. `com.my.app` turns into `{ "namespace": "com.my", "name": "app" }`.
