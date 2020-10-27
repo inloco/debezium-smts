@@ -70,6 +70,20 @@ class SetEventIdTest {
             requireStruct(secondTransformedRecord.value(), "testing").getString(eventIdField));
   }
 
+  @Test
+  void testSetEvenetId_givenNullEvent_shouldReturnNull() {
+    String eventIdField = "event_id_test";
+    Map<String, Object> configurations = new HashMap<>();
+    configurations.put(SetEventId.EVENT_FIELD_CONFIG, eventIdField);
+    SetEventId transform = new SetEventId();
+    transform.configure(configurations);
+
+    ConnectRecord transformedRecord = transform.apply(null);
+
+    assertThat(transformedRecord).isNull();
+
+  }
+
   private Schema createValueSchema() {
     return SchemaBuilder.struct()
         .name("record")

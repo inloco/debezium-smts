@@ -34,6 +34,7 @@ public class SetEventId implements Transformation {
 
   @Override
   public ConnectRecord apply(ConnectRecord record) {
+    if(record == null) return record;
     final Struct recordValue = requireStruct(record.value(), PURPOSE);
     if (recordValue.schema().field(eventIdField) != null) return record;
     final Schema updatedRecordSchema = updateSchema(recordValue);
