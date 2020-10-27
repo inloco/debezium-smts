@@ -81,7 +81,6 @@ class SetEventIdTest {
     ConnectRecord transformedRecord = transform.apply(null);
 
     assertThat(transformedRecord).isNull();
-
   }
 
   private Schema createValueSchema() {
