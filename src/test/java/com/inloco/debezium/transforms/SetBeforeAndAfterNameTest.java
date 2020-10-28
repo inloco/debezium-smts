@@ -143,7 +143,10 @@ class SetBeforeAndAfterNameTest {
   }
 
   private Schema createNamedSchemaWithBeforeOnlySchema() {
-    return SchemaBuilder.struct().name(ROOT_LEVEL_NAME).field("before", createInnerSchema()).build();
+    return SchemaBuilder.struct()
+        .name(ROOT_LEVEL_NAME)
+        .field("before", createInnerSchema())
+        .build();
   }
 
   private Schema createNamedSchemaWithAfterOnlySchema() {
