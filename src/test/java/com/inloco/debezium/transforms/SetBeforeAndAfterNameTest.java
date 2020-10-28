@@ -20,7 +20,7 @@ class SetBeforeAndAfterNameTest {
   private static final String INNER_NAME_WITH_NAMESPACE = "db.namespace.table.Value";
 
   @Test
-  void testSetEventId_withAllConfigs() {
+  void testSetBeforeAndAfterName_withAllConfigs() {
     Schema schema = createValueSchema();
     Struct value = populateInnerFields(schema, Arrays.asList("before", "after"));
     SinkRecord record = new SinkRecord("", 0, null, null, schema, value, 0);
@@ -39,7 +39,7 @@ class SetBeforeAndAfterNameTest {
   }
 
   @Test
-  void testSetEventId_withoutBeforeEvent() {
+  void testSetBeforeAndAfterName_withoutBeforeEvent() {
     Schema schema = createValueSchema();
     Struct value = populateInnerFields(schema, Collections.singletonList("after"));
     SinkRecord record = new SinkRecord("", 0, null, null, schema, value, 0);
@@ -59,7 +59,7 @@ class SetBeforeAndAfterNameTest {
   }
 
   @Test
-  void testSetEventId_withoutAfterEvent() {
+  void testSetBeforeAndAfterName_withoutAfterEvent() {
     Schema schema = createValueSchema();
     Struct value = populateInnerFields(schema, Collections.singletonList("before"));
     SinkRecord record = new SinkRecord("", 0, null, null, schema, value, 0);
@@ -79,7 +79,7 @@ class SetBeforeAndAfterNameTest {
   }
 
   @Test
-  void testSetEventId_withDeleteEvent() {
+  void testSetBeforeAndAfterName_withDeleteEvent() {
     Schema schema = createValueSchema();
     Struct value = populateInnerFields(schema, Collections.emptyList());
     SinkRecord record = new SinkRecord("", 0, null, null, schema, value, 0);
@@ -99,12 +99,58 @@ class SetBeforeAndAfterNameTest {
     assertThat(transformedRecordValue.schema().name()).isEqualTo(ROOT_LEVEL_NAME);
   }
 
+  @Test
+  void testSetBeforeAndAfterName_withNullMessage() {
+    String newName = "com.my.app.internal.Value";
+    Map<String, Object> configurations = new HashMap<>();
+    configurations.put(SetBeforeAndAfterName.NEW_NAME_CONFIG, newName);
+    SetBeforeAndAfterName transform = new SetBeforeAndAfterName();
+    transform.configure(configurations);
+
+    ConnectRecord transformedRecord = transform.apply(null);
+    assertThat(transformedRecord).isNull();
+  }
+
+  @Test
+  void testSetBeforeAndAfterName_withInvalidSchema_shouldReturnSameRecord() {
+    Schema schema = createNamedSchemaWithAfterOnlySchema();
+    Struct value = populateInnerFields(schema, Collections.emptyList());
+    SinkRecord record = new SinkRecord("", 0, null, null, schema, value, 0);
+
+    String newName = "com.my.app.internal.Value";
+    Map<String, Object> configurations = new HashMap<>();
+    configurations.put(SetBeforeAndAfterName.NEW_NAME_CONFIG, newName);
+    SetBeforeAndAfterName transform = new SetBeforeAndAfterName();
+    transform.configure(configurations);
+
+    ConnectRecord transformedRecord = transform.apply(record);
+    assertThat(transformedRecord).isEqualTo(record);
+
+    schema = createNamedSchemaWithAfterOnlySchema();
+    value = populateInnerFields(schema, Collections.emptyList());
+    record = new SinkRecord("", 0, null, null, schema, value, 0);
+
+    transformedRecord = transform.apply(record);
+    assertThat(transformedRecord).isEqualTo(record);
+  }
+
   private Schema createValueSchema() {
     return SchemaBuilder.struct()
         .name(ROOT_LEVEL_NAME)
         .field("after", createInnerSchema())
         .field("before", createInnerSchema())
         .build();
+  }
+
+  private Schema createNamedSchemaWithBeforeOnlySchema() {
+    return SchemaBuilder.struct()
+        .name(ROOT_LEVEL_NAME)
+        .field("before", createInnerSchema())
+        .build();
+  }
+
+  private Schema createNamedSchemaWithAfterOnlySchema() {
+    return SchemaBuilder.struct().name(ROOT_LEVEL_NAME).field("after", createInnerSchema()).build();
   }
 
   private Schema createInnerSchema() {
