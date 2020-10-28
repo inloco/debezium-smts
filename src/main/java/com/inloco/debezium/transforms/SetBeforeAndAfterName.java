@@ -37,6 +37,9 @@ public class SetBeforeAndAfterName implements Transformation {
   @Override
   public ConnectRecord apply(ConnectRecord record) {
     if (record == null || record.valueSchema() == null) return record;
+    Field beforeField = record.valueSchema().field(BEFORE_FIELD_NAME);
+    Field afterField = record.valueSchema().field(AFTER_FIELD_NAME);
+    if(beforeField == null || afterField == null) return record;
     Schema beforeSchema = record.valueSchema().field(BEFORE_FIELD_NAME).schema();
     Schema afterSchema = record.valueSchema().field(AFTER_FIELD_NAME).schema();
     if (beforeSchema == null || afterSchema == null) return record;

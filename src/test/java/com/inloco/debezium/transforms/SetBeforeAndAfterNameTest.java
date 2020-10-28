@@ -111,12 +111,43 @@ class SetBeforeAndAfterNameTest {
     assertThat(transformedRecord).isNull();
   }
 
+  @Test
+  void testSetBeforeAndAfterName_withInvalidSchema_shouldReturnSameRecord() {
+    Schema schema = createNamedSchemaWithAfterOnlySchema();
+    Struct value = populateInnerFields(schema, Collections.emptyList());
+    SinkRecord record = new SinkRecord("", 0, null, null, schema, value, 0);
+
+    String newName = "com.my.app.internal.Value";
+    Map<String, Object> configurations = new HashMap<>();
+    configurations.put(SetBeforeAndAfterName.NEW_NAME_CONFIG, newName);
+    SetBeforeAndAfterName transform = new SetBeforeAndAfterName();
+    transform.configure(configurations);
+
+    ConnectRecord transformedRecord = transform.apply(record);
+    assertThat(transformedRecord).isEqualTo(record);
+
+    schema = createNamedSchemaWithAfterOnlySchema();
+    value = populateInnerFields(schema, Collections.emptyList());
+    record = new SinkRecord("", 0, null, null, schema, value, 0);
+
+    transformedRecord = transform.apply(record);
+    assertThat(transformedRecord).isEqualTo(record);
+  }
+
   private Schema createValueSchema() {
     return SchemaBuilder.struct()
         .name(ROOT_LEVEL_NAME)
         .field("after", createInnerSchema())
         .field("before", createInnerSchema())
         .build();
+  }
+
+  private Schema createNamedSchemaWithBeforeOnlySchema() {
+    return SchemaBuilder.struct().name(ROOT_LEVEL_NAME).field("before", createInnerSchema()).build();
+  }
+
+  private Schema createNamedSchemaWithAfterOnlySchema() {
+    return SchemaBuilder.struct().name(ROOT_LEVEL_NAME).field("after", createInnerSchema()).build();
   }
 
   private Schema createInnerSchema() {
