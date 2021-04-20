@@ -6,12 +6,29 @@ plugins {
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
+    mavenCentral()
+    maven { url "https://jcenter.bintray.com" }
+    maven { url "https://packages.confluent.io/maven/" }
+    maven {
+        url "s3://inloco-global-maven/releases"
+        authentication {
+            awsIm(AwsImAuthentication)
+        }
+    }
+    maven {
+        url "s3://inloco-global-maven/snapshots"
+        authentication {
+            awsIm(AwsImAuthentication)
+        }
+    }
+
     jcenter()
 }
 
 dependencies {
     implementation group: 'org.apache.kafka', name: 'connect-transforms', version: '0.10.2.1'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    implementation group: 'com.inloco', name: 'kafka-auth-k8s', version: '0.0.3'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.10.0'
