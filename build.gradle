@@ -10,8 +10,13 @@ repositories {
 }
 
 dependencies {
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.24'
+
     implementation group: 'org.apache.kafka', name: 'connect-transforms', version: '0.10.2.1'
     implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+    implementation group: 'io.debezium', name: 'debezium-api', version: '1.9.2.Final'
+    implementation group: 'org.postgresql', name: 'postgresql', version: '42.3.6'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
     testImplementation 'org.assertj:assertj-core:3.10.0'
