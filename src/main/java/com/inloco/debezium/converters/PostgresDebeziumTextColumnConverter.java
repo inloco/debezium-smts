@@ -60,7 +60,8 @@ public class PostgresDebeziumTextColumnConverter
     try {
       Object columnValueObj = columnValue.getArray();
       if (columnValueObj instanceof String[]) {
-        return List.of(map1DArray((String[]) columnValueObj));
+        List<String> mappedArray = map1DArray((String[]) columnValueObj);
+        return mappedArray.isEmpty() ? List.of() : List.of(mappedArray);
       } else if (columnValueObj instanceof String[][]) {
         return map2DArray((String[][]) columnValueObj);
       }
